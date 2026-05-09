@@ -1,0 +1,5 @@
+# create .dockerignore
+echo "node_modules
+private_uploads
+.env
+*.log" > .dockerignore
