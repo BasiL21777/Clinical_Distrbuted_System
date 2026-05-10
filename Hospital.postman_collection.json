@@ -1,0 +1,719 @@
+{
+  "info": {
+    "_postman_id": "bc625025-3d61-4403-afde-5a69a16d0acc",
+    "name": "My Collection",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54556705",
+    "_collection_link": "https://go.postman.co/collection/54556705-bc625025-3d61-4403-afde-5a69a16d0acc?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Hospital_API",
+      "item": [
+        {
+          "name": "Appointments",
+          "item": [
+            {
+              "name": "GET ALL",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/appointment/",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "appointment",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/appointment/14",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "appointment",
+                    "14"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET DETAILS",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/appointment/1",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "appointment",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"patient_id\": \"3\",\r\n  \"doctor_id\": \"4\",\r\n  \"appointment_date\": \"2025-01-20T10:00:00.000Z\",\r\n  \"reason\": \"Regular checkup2\"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{Hospital_api}}/api/appointment/",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "appointment",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "EDIT",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"status\": \"completed\",\r\n  \"note\": \"Patient recovered \"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{Hospital_api}}/api/appointment/1",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "appointment",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "LIST ALL USERS",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/users/",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "LIST USER DETAILS",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/users/3",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "3"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "EDIT USER DETAILS",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"role\": \"doctor\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{Hospital_api}}/api/users/6",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "6"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE USER",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/users/4",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "4"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Doctors",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/users/doctors",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "doctors"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Patient_Records",
+          "item": [
+            {
+              "name": "GET ALL",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/patient_Record/",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "patient_Record",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET DETAILS",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/patient_Record/2",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "patient_Record",
+                    "2"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "EDIT",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"diagnosis\": \"Severe flu\",\r\n  \"prescription\": \"Tamiflu 75mg\",\r\n  \"notes\": \"Follow-up after 2 days\",\r\n  \"is_draft\": true\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{Hospital_api}}/api/patient_Record/1",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "patient_Record",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/patient_Record/1",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "patient_Record",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"patient_id\": \"6\",\r\n  \"doctor_id\": \"4\",\r\n  \"diagnosis\": \"Flu and feve55555r\",\r\n  \"prescription\": \"Paracetamol 500mg\",\r\n  \"notes\": \"Patient should rest for 3 days\",\r\n  \"is_draft\": true\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{Hospital_api}}/api/patient_Record/",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "patient_Record",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Logs",
+          "item": [
+            {
+              "name": "LIST_LOGS",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{JWT_Token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{Hospital_api}}/api/logs",
+                  "host": [
+                    "{{Hospital_api}}"
+                  ],
+                  "path": [
+                    "api",
+                    "logs"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Files_API",
+      "item": [
+        {
+          "name": "GET ALL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_Token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{File_system_api}}/api/files",
+              "host": [
+                "{{File_system_api}}"
+              ],
+              "path": [
+                "api",
+                "files"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_Token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "87980406-cd6b-4927-9358-57bd6dcb9def",
+                  "src": "/C:/Users/basel/OneDrive/سطح المكتب/CV/bassel-yasser-CV.pdf"
+                },
+                {
+                  "key": "patient_id",
+                  "value": "3",
+                  "type": "text",
+                  "uuid": "cd6ab8f0-de3f-469a-956e-f5658f594f02"
+                },
+                {
+                  "key": "lab_result",
+                  "value": "lab_result",
+                  "type": "text",
+                  "uuid": "a2320438-524b-4c7d-930e-15e971291795"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{File_system_api}}/api/files/upload",
+              "host": [
+                "{{File_system_api}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "upload"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{File_system_api}}/api/files/1/download",
+              "host": [
+                "{{File_system_api}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "1",
+                "download"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{File_system_api}}/api/files/2",
+              "host": [
+                "{{File_system_api}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Rigister",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"full_name\": \"Test Doctor\",\r\n  \"email\": \"doctor1@test.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{Auth_API}}/auth/register",
+              "host": [
+                "{{Auth_API}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();\r",
+                  "\r",
+                  "if (data.access_token) {\r",
+                  "    pm.environment.set(\"JWT_Token\", data.access_token);\r",
+                  "    console.log(\"Token saved:\", data.access_token);\r",
+                  "} else {\r",
+                  "    console.log(\"No access_token found in response:\", JSON.stringify(data));\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"admin1@med.com\",\r\n//   \"email\": \"doctor1@med.com\",\r\n//   \"email\": \"patient1@med.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{Auth_API}}/auth/login",
+              "host": [
+                "{{Auth_API}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "Hospital_api",
+      "value": ""
+    },
+    {
+      "key": "Auth_token",
+      "value": ""
+    },
+    {
+      "key": "Auth_API",
+      "value": ""
+    }
+  ]
+}

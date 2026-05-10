@@ -1,313 +1,157 @@
 const asyncWrapper = require("../middelwares/async_wrappers");
 const appError = require("../utils/appError");
-const { Op } = require("sequelize");
 
-// ----------------------
-// Helpers
-// ----------------------
-function isAdmin(role) {
-  return role?.toLowerCase() === "admin";
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const isAdmin   = (role) => role?.toLowerCase() === "admin";
+const isDoctor  = (role) => role?.toLowerCase() === "doctor";
+const isPatient = (role) => role?.toLowerCase() === "patient";
 
-function isDoctor(role) {
-  return role?.toLowerCase() === "doctor";
-}
+// Safe user attributes — matches auth service users table
+const USER_ATTRS = ["id", "full_name", "email", "role"];
 
-function isPatient(role) {
-  return role?.toLowerCase() === "patient";
-}
-
-// ----------------------
-// GET ALL RECORDS
-// ----------------------
+// ── GET ALL RECORDS ───────────────────────────────────────────────────────────
 exports.getAllRecords = asyncWrapper(async (req, res, next) => {
   const { User, PatientRecord } = req.app.locals.models;
   const requester = req.user;
 
-  if (!requester) {
-    return next(appError.create("Unauthorized", 401));
-  }
+  if (!requester) return next(appError.create("Unauthorized", 401));
 
-  // 🔥 FIX: JWT sub = users.id (NOT auth_user_id)
-  const currentUser = await User.findByPk(requester.sub);
-
-  if (!currentUser) {
-    return next(appError.create("User not found", 404));
-  }
-
-  let records;
+  const currentUser = await User.findByPk(Number(requester.sub));
+  if (!currentUser) return next(appError.create("User not found", 404));
 
   const role = requester.role?.toLowerCase();
+  let where = {};
 
-  // ================= ADMIN =================
-  if (role === "admin") {
-    records = await PatientRecord.findAll({
-      include: [
-        { model: User, as: "patient" },
-        { model: User, as: "doctor" }
-      ]
-    });
-  }
+  if      (isDoctor(role))  where = { doctor_id:  currentUser.id };
+  else if (isPatient(role)) where = { patient_id: currentUser.id };
 
-  // ================= DOCTOR =================
-  else if (role === "doctor") {
-    records = await PatientRecord.findAll({
-      where: {
-        doctor_id: currentUser.id
-      },
-      include: [
-        { model: User, as: "patient" },
-        { model: User, as: "doctor" }
-      ]
-    });
-  }
-
-  // ================= PATIENT =================
-  else {
-    records = await PatientRecord.findAll({
-      where: {
-        patient_id: currentUser.id
-      },
-      include: [
-        { model: User, as: "patient" },
-        { model: User, as: "doctor" }
-      ]
-    });
-  }
-
-  return res.status(200).json({
-    status: "success",
-    results: records.length,
-    data: records
+  const records = await PatientRecord.findAll({
+    where,
+    include: [
+      { model: User, as: "patient", attributes: USER_ATTRS },
+      { model: User, as: "doctor",  attributes: USER_ATTRS }
+    ]
   });
+
+  return res.status(200).json({ status: "success", results: records.length, data: records });
 });
 
-
-// ----------------------
-// GET SINGLE RECORD
-// ----------------------
+// ── GET SINGLE RECORD ─────────────────────────────────────────────────────────
 exports.getRecord = asyncWrapper(async (req, res, next) => {
   const { User, PatientRecord } = req.app.locals.models;
   const requester = req.user;
 
-  if (!requester) {
-    return next(appError.create("Unauthorized", 401));
-  }
+  if (!requester) return next(appError.create("Unauthorized", 401));
 
-  // 🔥 FIX: consistent identity (JWT sub = user.id)
-  const currentUser = await User.findByPk(requester.sub);
-
-  if (!currentUser) {
-    return next(appError.create("User not found", 404));
-  }
+  const currentUser = await User.findByPk(Number(requester.sub));
+  if (!currentUser) return next(appError.create("User not found", 404));
 
   const record = await PatientRecord.findByPk(req.params.id, {
     include: [
-      { model: User, as: "patient" },
-      { model: User, as: "doctor" }
+      { model: User, as: "patient", attributes: USER_ATTRS },
+      { model: User, as: "doctor",  attributes: USER_ATTRS }
     ]
   });
 
-  if (!record) {
-    return next(appError.create("Record not found", 404));
-  }
-
-  const role = requester.role?.toLowerCase();
-
-  const isAdminUser = role === "admin";
+  if (!record) return next(appError.create("Record not found", 404));
 
   const isOwner =
     record.patient_id === currentUser.id ||
-    record.doctor_id === currentUser.id;
+    record.doctor_id  === currentUser.id;
 
-  // 🔥 Authorization
-  if (!isAdminUser && !isOwner) {
+  if (!isAdmin(requester.role) && !isOwner) {
     return next(appError.create("Forbidden", 403));
   }
 
-  return res.status(200).json({
-    status: "success",
-    data: record
-  });
+  return res.status(200).json({ status: "success", data: record });
 });
 
-
-// ----------------------
-// CREATE RECORD
-// ----------------------
+// ── CREATE RECORD ─────────────────────────────────────────────────────────────
 exports.createRecord = asyncWrapper(async (req, res, next) => {
   const { User, PatientRecord } = req.app.locals.models;
   const requester = req.user;
 
-  if (!requester) {
-    return next(appError.create("Unauthorized", 401));
-  }
+  if (!requester) return next(appError.create("Unauthorized", 401));
 
-  // 🔥 FIX: JWT sub = DB id
-  const currentUser = await User.findByPk(requester.sub);
-
-  if (!currentUser) {
-    return next(appError.create("User not found", 404));
-  }
+  const currentUser = await User.findByPk(Number(requester.sub));
+  if (!currentUser) return next(appError.create("User not found", 404));
 
   const role = requester.role?.toLowerCase();
 
-  // =========================
-  // ONLY doctor or admin
-  // =========================
-  if (role !== "doctor" && role !== "admin") {
+  if (!isDoctor(role) && !isAdmin(role)) {
     return next(appError.create("Only doctors or admins can create records", 403));
   }
 
-  // =========================
-  // validate patient
-  // =========================
   const patient = await User.findByPk(req.body.patient_id);
-
-  if (!patient || patient.role?.toLowerCase() !== "patient") {
+  if (!patient || !isPatient(patient.role)) {
     return next(appError.create("Invalid patient", 400));
   }
 
-  // =========================
-  // determine doctor_id
-  // =========================
-  let doctorId;
+  let doctorId = currentUser.id;
 
-  if (role === "admin") {
-    // admin chooses doctor
-    if (!req.body.doctor_id) {
-      return next(appError.create("doctor_id is required for admin", 400));
-    }
-
+  if (isAdmin(role)) {
+    if (!req.body.doctor_id) return next(appError.create("doctor_id is required for admin", 400));
     const doctor = await User.findByPk(req.body.doctor_id);
-
-    if (!doctor || doctor.role?.toLowerCase() !== "doctor") {
-      return next(appError.create("Invalid doctor", 400));
-    }
-
+    if (!doctor || !isDoctor(doctor.role)) return next(appError.create("Invalid doctor", 400));
     doctorId = doctor.id;
-  } else {
-    // doctor creates for himself
-    doctorId = currentUser.id;
   }
 
-  // =========================
-  // CREATE RECORD
-  // =========================
   const record = await PatientRecord.create({
-    patient_id: patient.id,
-    doctor_id: doctorId,
-    diagnosis: req.body.diagnosis,
+    patient_id:   patient.id,
+    doctor_id:    doctorId,
+    diagnosis:    req.body.diagnosis,
     prescription: req.body.prescription,
-    notes: req.body.notes,
-    is_draft: req.body.is_draft ?? true
+    notes:        req.body.notes,
+    is_draft:     req.body.is_draft ?? true
   });
 
-  return res.status(201).json({
-    status: "success",
-    data: record
-  });
+  return res.status(201).json({ status: "success", data: record });
 });
 
-
-// ----------------------
-// UPDATE RECORD
-// ----------------------
+// ── UPDATE RECORD ─────────────────────────────────────────────────────────────
 exports.updateRecord = asyncWrapper(async (req, res, next) => {
   const { User, PatientRecord } = req.app.locals.models;
   const requester = req.user;
 
-  if (!requester) {
-    return next(appError.create("Unauthorized", 401));
-  }
+  if (!requester) return next(appError.create("Unauthorized", 401));
 
-  // 🔥 FIX: consistent identity
-  const currentUser = await User.findByPk(requester.sub);
-
-  if (!currentUser) {
-    return next(appError.create("User not found", 404));
-  }
+  const currentUser = await User.findByPk(Number(requester.sub));
+  if (!currentUser) return next(appError.create("User not found", 404));
 
   const record = await PatientRecord.findByPk(req.params.id);
-
-  if (!record) {
-    return next(appError.create("Record not found", 404));
-  }
-
-  const role = requester.role?.toLowerCase();
-  const isAdminUser = role === "admin";
+  if (!record) return next(appError.create("Record not found", 404));
 
   const isDoctorOwner =
-    role === "doctor" && record.doctor_id === currentUser.id;
+    isDoctor(requester.role) && record.doctor_id === currentUser.id;
 
-  // =========================
-  // AUTHORIZATION
-  // =========================
-  if (!isAdminUser && !isDoctorOwner) {
+  if (!isAdmin(requester.role) && !isDoctorOwner) {
     return next(appError.create("Forbidden", 403));
   }
 
-  // =========================
-  // SAFE UPDATE (prevent role abuse)
-  // =========================
-  const allowedFields = {
-    diagnosis: req.body.diagnosis,
-    prescription: req.body.prescription,
-    notes: req.body.notes,
-    is_draft: req.body.is_draft
-  };
-
-  // remove undefined fields
-  Object.keys(allowedFields).forEach(
-    (key) => allowedFields[key] === undefined && delete allowedFields[key]
-  );
+  const allowedFields = {};
+  ["diagnosis", "prescription", "notes", "is_draft"].forEach((key) => {
+    if (req.body[key] !== undefined) allowedFields[key] = req.body[key];
+  });
 
   await record.update(allowedFields);
 
-  return res.status(200).json({
-    status: "success",
-    data: record
-  });
+  return res.status(200).json({ status: "success", data: record });
 });
 
-
-// ----------------------
-// DELETE RECORD
-// ----------------------
+// ── DELETE RECORD ─────────────────────────────────────────────────────────────
 exports.deleteRecord = asyncWrapper(async (req, res, next) => {
-  const { User, PatientRecord } = req.app.locals.models;
+  const { PatientRecord } = req.app.locals.models;
   const requester = req.user;
 
-  if (!requester) {
-    return next(appError.create("Unauthorized", 401));
-  }
-
-  // 🔥 FIX: consistent identity (JWT sub → DB id)
-  const currentUser = await User.findByPk(requester.sub);
-
-  if (!currentUser) {
-    return next(appError.create("User not found", 404));
-  }
-
-  const record = await PatientRecord.findByPk(req.params.id);
-
-  if (!record) {
-    return next(appError.create("Record not found", 404));
-  }
-
-  const role = requester.role?.toLowerCase();
-
-  // =========================
-  // ONLY ADMIN CAN DELETE
-  // =========================
-  if (role !== "admin") {
+  if (!requester) return next(appError.create("Unauthorized", 401));
+  if (!isAdmin(requester.role)) {
     return next(appError.create("Only admin can delete records", 403));
   }
 
+  const record = await PatientRecord.findByPk(req.params.id);
+  if (!record) return next(appError.create("Record not found", 404));
+
   await record.destroy();
 
-  return res.status(200).json({
-    status: "success",
-    message: "Record deleted successfully"
-  });
+  return res.status(200).json({ status: "success", message: "Record deleted successfully" });
 });

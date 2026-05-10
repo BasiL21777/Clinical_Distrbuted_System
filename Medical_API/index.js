@@ -11,7 +11,7 @@ const { Sequelize } = require('sequelize');
 
 const app = express();
 
-// ── PostgreSQL Connection ─────────────────────────────────────────────────────
+// ── PostgreSQL ────────────────────────────────────────────────────────────────
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -30,54 +30,52 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ── Boot: DB first, then routes, then listen ──────────────────────────────────
+// ── Boot ─────────────────────────────────────────────────────────────────────
 (async () => {
   try {
     await sequelize.authenticate();
     console.log('PostgreSQL Connected Successfully...');
 
-    // Load models
     const User          = require('./models/users.model')(sequelize);
     const Appointment   = require('./models/Appointment.model')(sequelize);
-    const PatientRecord = require('./models/PatientRecord.model')(sequelize);
-    const SystemLog = require('./models/SystemLog.model')(sequelize);
-    const modelObjects = { User, Appointment, PatientRecord, SystemLog };
+    const PatientRecord = require('./models/PatientRecord.model.js')(sequelize);
+    const SystemLog     = require('./models/SystemLog.model.js')(sequelize);
 
-    // Make models available in every controller via req.app.locals.models
+    const modelObjects = { User, Appointment, PatientRecord, SystemLog };
     app.locals.models = modelObjects;
 
-    // Apply associations
     Object.keys(modelObjects).forEach((name) => {
       if (modelObjects[name].associate) {
         modelObjects[name].associate(modelObjects);
       }
     });
 
-    await sequelize.sync({ alter: true });
+    // Auth service owns users table — never alter it
+    await Appointment.sync({ alter: true });
+    await PatientRecord.sync({ alter: true });
+    await SystemLog.sync({ alter: true });
+    await User.sync({ alter: false });
+
     console.log('Database Synced...');
 
-    const requestLogger = require('./middelwares/requestLogger.js');
-
+    // ── Request logger (needs models ready to write logs) ─────────────────
+    const requestLogger = require('./middelwares/requestLogger');
     app.use(requestLogger('Medical_API'));
 
-    // ── Register routes AFTER models are ready ──────────────────────────────
+    // ── Routes ────────────────────────────────────────────────────────────
     const usersRouter         = require('./routes/users.routes.js');
-    const authRoutes          = require('./routes/auth.routes.js');
     const appointmentRoutes   = require('./routes/appointment.routes.js');
     const patientRecordRoutes = require('./routes/patientRecord.routes.js');
-    const logsRoutes = require('./routes/logs.routes');
+    const System_Logs         = require('./routes/logs.routes.js');
 
-    app.use('/api/logs', logsRoutes);
-    app.use('/api/users',      usersRouter);
-    app.use('/api/appointment', appointmentRoutes);
-    app.use('/auth',           authRoutes);
-    app.use('/patient_Record', patientRecordRoutes);
-
-    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+    app.use('/api/users',          usersRouter);
+    app.use('/api/appointment',    appointmentRoutes);
+    app.use('/api/patient_Record', patientRecordRoutes);
+    app.use('/api/logs',           System_Logs);
 
     // 404
     app.use((req, res) => {
-      res.status(404).json({ status: ERROR, msg: 'this resource is not available' });
+      res.status(404).json({ status: ERROR, msg: 'Resource not found' });
     });
 
     // Global error handler
@@ -89,7 +87,6 @@ app.use(express.urlencoded({ extended: true }));
       });
     });
 
-    // ── Start server only after everything is ready ─────────────────────────
     const port = process.env.PORT || 3000;
     app.listen(port, () => console.log(`Medical API running on port ${port}...`));
 
@@ -100,5 +97,4 @@ app.use(express.urlencoded({ extended: true }));
 })();
 
 app.set('sequelize', sequelize);
-
 module.exports = { app, sequelize };

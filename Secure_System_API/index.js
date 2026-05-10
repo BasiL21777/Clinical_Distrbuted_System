@@ -5,15 +5,12 @@ const express = require('express');
 const morgan  = require('morgan');
 const cors    = require('cors');
 
-const medicalFileRoutes = require('./routes/medicalFile.routes');
-
 const { ERROR } = require('./utils/httpStatusText');
-
 const { Sequelize } = require('sequelize');
 
 const app = express();
 
-// ─── PostgreSQL Connection ───────────────────────────────────────────────────
+// ── PostgreSQL ────────────────────────────────────────────────────────────────
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -26,59 +23,63 @@ const sequelize = new Sequelize(
   }
 );
 
-// ─── Middleware ──────────────────────────────────────────────────────────────
+// ── Middleware ────────────────────────────────────────────────────────────────
 app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Database + Models ──────────────────────────────────────────────────────
+// ── Boot ─────────────────────────────────────────────────────────────────────
 (async () => {
   try {
     await sequelize.authenticate();
     console.log('PostgreSQL Connected Successfully...');
 
     const MedicalFile = require('./models/medicalFile.model')(sequelize);
-    const SystemLog = require('./models/SystemLog.model')(sequelize);
+    const SystemLog   = require('./models/SystemLog.model')(sequelize);
 
-    const models = { MedicalFile , SystemLog };
+    const models = { MedicalFile, SystemLog };
     app.locals.models = models;
 
     Object.values(models).forEach((model) => {
       if (model.associate) model.associate(models);
     });
 
-    await sequelize.sync({ alter: true });
+    await MedicalFile.sync({ alter: true });
+    await SystemLog.sync({ alter: true });
+
     console.log('Database Synced...');
+
+    // ── Request logger (needs models ready to write logs) ─────────────────
+    const requestLogger = require('./middlewares/requestLogger');
+    app.use(requestLogger('Secure_System_API'));
+
+    // ── Routes ────────────────────────────────────────────────────────────
+    const medicalFileRoutes = require('./routes/medicalFile.routes');
+    app.use('/api/files', medicalFileRoutes);
+
+    // 404
+    app.use((req, res) => {
+      res.status(404).json({ status: ERROR, msg: 'Resource not found' });
+    });
+
+    // Global error handler
+    app.use((err, req, res, next) => {
+      res.status(err.statusCode || 500).json({
+        status: err.statusText || ERROR,
+        msg:    err.message,
+        data:   null
+      });
+    });
+
+    const port = process.env.PORT || 5000;
+    app.listen(port, () => console.log(`File Service running on port ${port}...`));
 
   } catch (error) {
     console.error('Database Connection Failed:', error);
+    process.exit(1);
   }
 })();
 
-const requestLogger = require('./middlewares/requestLogger');
-
-app.use(requestLogger('Secure_System_API'));
-
-// ─── Routes ─────────────────────────────────────────────────────────────────
-app.use('/api/files', medicalFileRoutes);
-
-// ─── 404 ────────────────────────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ status: ERROR, msg: 'Resource not found' });
-});
-
-// ─── Global Error Handler ────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-  res.status(err.statusCode || 500).json({
-    status: err.statusText || ERROR,
-    msg:    err.message,
-    data:   null
-  });
-});
-
-// ─── Start ───────────────────────────────────────────────────────────────────
-const port = process.env.PORT || 6000;
-app.listen(port, () => console.log(`File Service running on port ${port}...`));
-
+app.set('sequelize', sequelize);
 module.exports = { app, sequelize };
